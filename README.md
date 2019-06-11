@@ -1,10 +1,16 @@
-# Role Name
+# gaia-monitor
 
-Gaia Monitor - Enables the loging of CheckPoint information to Elastic Search for monitoring and alerting.
+Gaia Monitor - Enables the extraction of CheckPoint information from the default Gaia web interface to be index into Elastic Search for monitoring and alerting.
 
 ## Requirements
 
+- Ansible Tower
+
 - Elastic Search cluster
+
+- CheckPoint Gaia account
+
+- Firewall access enabled to the Gaia web interface
 
 - Python modules
   - requests
@@ -17,30 +23,35 @@ Gaia Monitor - Enables the loging of CheckPoint information to Elastic Search fo
 
 ## Role Variables
 
-    host: CheckPoint Device to monitor
+``` yaml
 
-    method: Gaia Endpoint data to retrieve (All, hostname, overview,backup, operation, monitor, blades-summary)
+    host: cp-01 #CheckPoint Device to monitor
 
-    username:  Gaia username
+    method: All #Gaia Endpoint data to retrieve (All, hostname, overview,backup, operation, monitor, blades-summary)
 
-    password: Gaia password
+    username: monitor_account #Gaia username
 
-    es_host: Elastic Search host
+    password: 12345 #Gaia password
 
-    es_port: Elastic Search port
+    es_host: es.mydomain.com #Elastic Search host
 
-    es_username: Elastic Search username
+    es_port: 9300 #Elastic Search port
 
-    es_password: Elastic Search password/secret
+    es_username: elastic #Elastic Search username
 
-    es_index: Elastic Search index
+    es_password: 12345 #Elastic Search password/secret
 
-    ca_path: Certificate of Authority .pem file
+    es_index: gaia-monitior #Elastic Search index
+
+    ca_path: /etc/ssl/certs/mydomain.pem #Certificate of Authority .pem file
+
+```
 
 ## Example Playbook
 
 Presuming that you are using this role within Ansible Tower with an inventory group named CHECKPOINT-Firewalls, Replace CP-01 and CP-02 with valid host names if you wish to run this playbook standalone outside of Tower.
 
+``` yaml
 - name: CheckPoint Blades Checker
 
   hosts: localhost
@@ -63,6 +74,7 @@ Presuming that you are using this role within Ansible Tower with an inventory gr
     with_items: "{{ CheckPoints }}"  
     loop_control:
     loop_var: checkpoint
+```
 
 ## License
 
