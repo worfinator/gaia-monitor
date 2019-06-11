@@ -23,35 +23,33 @@ Gaia Monitor - Enables the extraction of CheckPoint information from the default
 
 ## Role Variables
 
-``` yaml
+```yaml
+host: cp-01 #CheckPoint Device to monitor
 
-    host: cp-01 #CheckPoint Device to monitor
+method: All #Gaia Endpoint data to retrieve (All, hostname, overview,backup, operation, monitor, blades-summary)
 
-    method: All #Gaia Endpoint data to retrieve (All, hostname, overview,backup, operation, monitor, blades-summary)
+username: monitor_account #Gaia username
 
-    username: monitor_account #Gaia username
+password: 12345 #Gaia password
 
-    password: 12345 #Gaia password
+es_host: es.mydomain.com #Elastic Search host
 
-    es_host: es.mydomain.com #Elastic Search host
+es_port: 9300 #Elastic Search port
 
-    es_port: 9300 #Elastic Search port
+es_username: elastic #Elastic Search username
 
-    es_username: elastic #Elastic Search username
+es_password: 12345 #Elastic Search password/secret
 
-    es_password: 12345 #Elastic Search password/secret
+es_index: gaia-monitior #Elastic Search index
 
-    es_index: gaia-monitior #Elastic Search index
-
-    ca_path: /etc/ssl/certs/mydomain.pem #Certificate of Authority .pem file
-
+ca_path: /etc/ssl/certs/mydomain.pem #Certificate of Authority .pem file
 ```
 
 ## Example Playbook
 
 Presuming that you are using this role within Ansible Tower with an inventory group named CHECKPOINT-Firewalls, Replace CP-01 and CP-02 with valid host names if you wish to run this playbook standalone outside of Tower.
 
-``` yaml
+```yaml
 - name: CheckPoint Blades Checker
 
   hosts: localhost
@@ -71,14 +69,14 @@ Presuming that you are using this role within Ansible Tower with an inventory gr
     var: CheckPoints
 
   - include_role: name=gaia-monitoring
-    with_items: "{{ CheckPoints }}"  
+    with_items: "{{ CheckPoints }}"
     loop_control:
     loop_var: checkpoint
 ```
 
 ## License
 
-BSD
+GPL-2.0-or-later
 
 ## Author Information
 
