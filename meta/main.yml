@@ -1,6 +1,6 @@
 galaxy_info:
   author: Mark Baldwin
-  description: Security Specialist
+  description: Export CheckPoint Firewall information from the default Gaia web interface into an ElasticSearch index.
   company: iKnowTek
 
   # If the issue tracker for your role is not on github, uncomment the
