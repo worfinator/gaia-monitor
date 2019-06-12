@@ -68,7 +68,7 @@ Presuming that you are using this role within Ansible Tower with an inventory gr
     debug:
     var: CheckPoints
 
-  - include_role: name=gaia-monitoring
+  - include_role: name=gaia-monitor
     with_items: "{{ CheckPoints }}"
     loop_control:
     loop_var: checkpoint
