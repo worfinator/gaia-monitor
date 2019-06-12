@@ -26,7 +26,8 @@ fields = {
     },
     "password": {
         "required": False,
-        "type": "str"
+        "type": "str",
+        "no_log": True
     },
     "es_host": {
         "required": True,
@@ -42,7 +43,8 @@ fields = {
     },
     "es_password": {
         "required": True,
-        "type": "str"
+        "type": "str",
+        "no_log": True
     },
     "es_index": {
         "required": True,
@@ -292,7 +294,7 @@ def main(host, username, password, method, es_host, es_port, es_username, es_pas
 
         response = session['message']
     
-    module.exit_json(changed=False, results=response)
+    module.exit_json(changed=False, ansible_module_results=response)
 
 # Get the show on the road
 if __name__ == '__main__':

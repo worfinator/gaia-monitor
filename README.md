@@ -26,6 +26,8 @@ Gaia Monitor - Enables the extraction of CheckPoint information from the default
 ```yaml
 host: cp-01 #CheckPoint Device to monitor
 
+domain: .mydomain.com #option domain to add to host if required to resolve host
+
 method: All #Gaia Endpoint data to retrieve (All, hostname, overview,backup, operation, monitor, blades-summary)
 
 username: monitor_account #Gaia username
@@ -56,6 +58,7 @@ Presuming that you are using this role within Ansible Tower with an inventory gr
 
   vars:
   CheckPoints: - CP-01 - CP-02
+  domain: .mydomain.com #option domain to add to host if required to resolve host
 
   tasks:
 

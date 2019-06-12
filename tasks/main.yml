@@ -2,7 +2,7 @@
 - name: Get Monitoring Info
   gaia2elastic:
     #CheckPoint Device
-    host: '{{ checkpoint }}'
+    host: '{{ checkpoint }}{{ domain }}'
     # Method/Endpoint data to retrieve (All, hostname, overview,backup, operation, monitor, blades-summary)
     method: All
     #Gaia Web credentials
@@ -16,12 +16,12 @@
     es_index: '{{ es_index }}'
     #Certificate of Authority .pem file 
     ca_path: '{{ ca_path }}' 
-  register: result
+  register: modout
   ignore_errors: True
-  no_log: True
+  no_log: False
   async: 600
   poll: 0
 
 - name: Debug Info
   debug:
-    var: result
+    var: modout
