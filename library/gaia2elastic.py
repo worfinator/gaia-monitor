@@ -134,7 +134,6 @@ def login(username, password):
         'Origin': "https://"+session['host'],
         'Referer': "https://"+session['host']+"/",
         'Connection': "keep-alive",
-        'Content-Length': "42",
         'Pragma': "no-cache",
         'Cache-Control': "no-cache",
         'Upgrade-Insecure-Requests': "1",
