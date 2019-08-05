@@ -72,8 +72,10 @@ Presuming that you are using this role within Ansible Tower with an inventory gr
     - CP-02
   domain: .mydomain.com #option domain to add to host if required to resolve host
 
-  gaia_username: myuser
-  gaia_password: mypassword
+  gaia:
+    username: myuser
+    password: mypassword
+    method: All
 
   data_store:
     type: elastic
