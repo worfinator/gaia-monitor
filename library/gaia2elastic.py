@@ -285,7 +285,6 @@ def index2logstash(host, port, protocol, version, data, method):
 
 
 def main():
-    session['host'] = host
     data = {}
     response = {}
 
@@ -308,10 +307,12 @@ def main():
         # Finally, parse to JSON
         parameters = json.loads(parameters)
 
+    session['host'] = host
+
     login(username=username, password=password)
 
     response = {
-        'error': true
+        'error': True,
         'message': 'Failed to log'
     }
 
@@ -339,10 +340,10 @@ def main():
 
         if (data_store == 'logstash'):
             response = index2logstash(
-                host=parameters.get('ls_host,''),
-                port=parameters.get('ls_port,''),
-                protocol=parameters.get('ls_protocol,''),
-                version=parameters.get('ls_version,''),
+                host=parameters.get('ls_host',''),
+                port=parameters.get('ls_port',''),
+                protocol=parameters.get('ls_protocol',''),
+                version=parameters.get('ls_version',''),
                 data=data, 
                 method=method)
 
