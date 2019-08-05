@@ -279,9 +279,7 @@ def index2logstash(host, port, protocol, version, data, method):
     else:
         ls_logger.addHandler(logstash.LogstashHandler(host, port, version=version))
 
-    ls_logger.info('gaia-monitor: ' + method + data):
-
-    response = es.index(index=esindex, doc_type=method, body=data)
+    response = ls_logger.info('gaia-monitor: ' + method + data)
 
     return response
 
