@@ -34,17 +34,27 @@ username: monitor_account #Gaia username
 
 password: 12345 #Gaia password
 
-es_host: es.mydomain.com #Elastic Search host
+parameters: elastic search or logstash datastore parameters:
 
-es_port: 9300 #Elastic Search port
 
-es_username: elastic #Elastic Search username
+#Elastic search
+parameters:
+  type: elastic
+  es_host: es.mydomain.com #Elastic Search host
+  es_port: 9300 #Elastic Search port
+  es_username: elastic #Elastic Search username
+  es_password: 12345 #Elastic Search password/secret
+  es_index: gaia-monitior #Elastic Search index
+  ca_path: /etc/ssl/certs/mydomain.pem #Certificate of Authority .pem file
 
-es_password: 12345 #Elastic Search password/secret
+#Logstash
+parameters:
+  type: logstash
+  ls_host: ls.mydomain.com #Logstash host
+  ls_port: 5959 #Logstash port
+  protocol: tcp #Logstash protocol either tcp or udp
+  version: 1 #Logstash logger version
 
-es_index: gaia-monitior #Elastic Search index
-
-ca_path: /etc/ssl/certs/mydomain.pem #Certificate of Authority .pem file
 ```
 
 ## Example Playbook
@@ -57,24 +67,37 @@ Presuming that you are using this role within Ansible Tower with an inventory gr
   hosts: localhost
 
   vars:
-  CheckPoints: - CP-01 - CP-02
+  CheckPoints:
+    - CP-01
+    - CP-02
   domain: .mydomain.com #option domain to add to host if required to resolve host
 
+  gaia_username: myuser
+  gaia_password: mypassword
+
+  data_store:
+    type: elastic
+    es_host: elasticsearch.mydomain.com
+    es_port: 9300
+    es_username: elasticUser
+    es_password: elasticPassword
+    es_index: my-index-of-something
+    ca_path: /etc/ssl/certs/mydomain.pem
+
   tasks:
+    - name: Set hosts
+      set_fact:
+      CheckPoints: "{{ groups['CHECKPOINT-Firewalls'] }}"
+      when: groups['CHECKPOINT-Firewalls'] is defined
 
-  - name: Set hosts
-    set_fact:
-    CheckPoints: "{{ groups['CHECKPOINT-Firewalls'] }}"
-    when: groups['CHECKPOINT-Firewalls'] is defined
+    - name: CheckPoints we will be querying
+      debug:
+      var: CheckPoints
 
-  - name: CheckPoints we will be querying
-    debug:
-    var: CheckPoints
-
-  - include_role: name=gaia-monitor
-    with_items: "{{ CheckPoints }}"
-    loop_control:
-    loop_var: checkpoint
+    - include_role: name=gaia-monitor
+      with_items: "{{ CheckPoints }}"
+      loop_control:
+      loop_var: checkpoint
 ```
 
 ## License
