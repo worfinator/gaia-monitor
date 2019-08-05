@@ -4,10 +4,10 @@
     #CheckPoint Device
     host: "{{ checkpoint }}{{ domain }}"
     # Method/Endpoint data to retrieve (All, hostname, overview,backup, operation, monitor, blades-summary)
-    method: All
+    method: "{{ gaia.method }}"
     #Gaia Web credentials
-    username: "{{ gaia_username }}"
-    password: "{{ gaia_password }}"
+    username: "{{ gaia.username }}"
+    password: "{{ gaia.password }}"
     parameters: "{{ data_store }}"
   register: modout
   ignore_errors: True
