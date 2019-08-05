@@ -40,18 +40,18 @@ parameters: elastic search or logstash datastore parameters:
 #Elastic search
 parameters:
   type: elastic
-  es_host: es.mydomain.com #Elastic Search host
-  es_port: 9300 #Elastic Search port
-  es_username: elastic #Elastic Search username
-  es_password: 12345 #Elastic Search password/secret
-  es_index: gaia-monitior #Elastic Search index
+  host: es.mydomain.com #Elastic Search host
+  port: 9300 #Elastic Search port
+  username: elastic #Elastic Search username
+  password: 12345 #Elastic Search password/secret
+  index: gaia-monitior #Elastic Search index
   ca_path: /etc/ssl/certs/mydomain.pem #Certificate of Authority .pem file
 
 #Logstash
 parameters:
   type: logstash
-  ls_host: ls.mydomain.com #Logstash host
-  ls_port: 5959 #Logstash port
+  host: ls.mydomain.com #Logstash host
+  port: 5959 #Logstash port
   protocol: tcp #Logstash protocol either tcp or udp
   version: 1 #Logstash logger version
 
@@ -77,11 +77,11 @@ Presuming that you are using this role within Ansible Tower with an inventory gr
 
   data_store:
     type: elastic
-    es_host: elasticsearch.mydomain.com
-    es_port: 9300
-    es_username: elasticUser
-    es_password: elasticPassword
-    es_index: my-index-of-something
+    host: elasticsearch.mydomain.com
+    port: 9300
+    username: elasticUser
+    password: elasticPassword
+    index: my-index-of-something
     ca_path: /etc/ssl/certs/mydomain.pem
 
   tasks:

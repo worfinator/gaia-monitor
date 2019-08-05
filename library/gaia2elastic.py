@@ -324,26 +324,26 @@ def main():
 
         if (data_store == 'elastic'):
             es = setElasticSearch(
-                parameters.get('es_host',''), 
-                parameters.get('es_port' ,''),
-                parameters.get('es_username',''),
-                parameters.get('es_password',''),
+                parameters.get('host',''), 
+                parameters.get('port' ,''),
+                parameters.get('username',''),
+                parameters.get('password',''),
                 parameters.get('ca_path',''))
 
             data['@timestamp'] = datetime.datetime.utcnow()
 
             response = index2Elastic(
                 es=es, 
-                index=es_index, 
+                index=parameters.get('index','Default-'), 
                 data=data, 
                 method=method)
 
         if (data_store == 'logstash'):
             response = index2logstash(
-                host=parameters.get('ls_host',''),
-                port=parameters.get('ls_port',''),
-                protocol=parameters.get('ls_protocol',''),
-                version=parameters.get('ls_version',''),
+                host=parameters.get('host',''),
+                port=parameters.get('port',''),
+                protocol=parameters.get('protocol',''),
+                version=parameters.get('version',''),
                 data=data, 
                 method=method)
 
