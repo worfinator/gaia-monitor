@@ -4,6 +4,9 @@ import requests
 import json
 import hjson
 import urllib3
+import logging
+import logstash
+import sys
 from elasticsearch import Elasticsearch
 from ssl import create_default_context
 from requests.adapters import HTTPAdapter
@@ -16,10 +19,6 @@ fields = {
         "required": True,
         "type": "str"
     },
-    "method": {
-        "type": "str",
-        "default": "All"
-    },
     "username": {
         "required": True,
         "type": "str"
@@ -29,31 +28,11 @@ fields = {
         "type": "str",
         "no_log": True
     },
-    "es_host": {
-        "required": True,
-        "type": "str"
-    },
-    "es_port": {
-        "required": True,
-        "type": "str"
-    },
-    "es_username": {
-        "required": True,
-        "type": "str"
-    },
-    "es_password": {
-        "required": True,
+    "method": {
         "type": "str",
-        "no_log": True
+        "default": "All"
     },
-    "es_index": {
-        "required": True,
-        "type": "str"
-    },
-    "ca_path": {
-        "required": True,
-        "type": "str"
-    }
+    "parameters": {}
 }
 
 module = AnsibleModule(argument_spec=fields, supports_check_mode=True)
@@ -76,13 +55,13 @@ methods = {
     'backup': 'operation=query-backup-progress',
     'monitor': '',
     'blades-summary': ''
-    #'interfaces': 'overview_page=t'
+    # 'interfaces': 'overview_page=t'
 
 }
 
 
-
 urllib3.disable_warnings()
+
 
 def setElasticSearch(es_host, es_port, es_username, es_password, ca_path):
     context = create_default_context(cafile=ca_path)
@@ -96,6 +75,7 @@ def setElasticSearch(es_host, es_port, es_username, es_password, ca_path):
     )
 
     return es_object
+
 
 def requests_retry_session(
     retries=1,
@@ -117,6 +97,7 @@ def requests_retry_session(
     session.mount('https://', adapter)
     return session
 
+
 def setSession(cookie):
     now = datetime.datetime.utcnow()
     session['date'] = now.strftime('%Y-%m-%d')
@@ -125,8 +106,10 @@ def setSession(cookie):
     session['alive'] = True
     session['cookie'] = cookie
 
+
 def setBasePath(path):
     session['basepath'] = path
+
 
 def login(username, password):
     headers = {
@@ -144,28 +127,32 @@ def login(username, password):
         'Accept-Language': "en-NZ,en-GB;q=0.9,en-US;q=0.8,en;q=0.7",
         'Cookie': "Session=Login"
     }
-    
+
     try:
         url = 'https://'+session['host']+session['basepath']+'home.tcl'
         payload = 'userName=' + username + '&userPass=' + password
-        response = requests_retry_session().request("POST", url, data=payload, headers=headers, verify=False)
+        response = requests_retry_session().request(
+            "POST", url, data=payload, headers=headers, verify=False)
 
-        #print(response.headers)
-        #print(response.text)
+        # print(response.headers)
+        # print(response.text)
 
         if response.status_code == 200 and response.text.find('location.href = "') > 0:
-            setBasePath('/' + response.text.split('location.href = "')[1].split('"')[0].split('/')[1] + session['basepath'])
+            setBasePath('/' + response.text.split('location.href = "')
+                        [1].split('"')[0].split('/')[1] + session['basepath'])
             setSession(response.headers['Set-Cookie'])
         else:
             session['message'] = 'Error connecting to host: ' + session['host']
     except:
-       session['alive'] = False
-       session['message'] = 'No response from host: ' + session['host']
+        session['alive'] = False
+        session['message'] = 'No response from host: ' + session['host']
+
 
 def constructURL(method):
     url = 'https://'+session['host']+session['basepath']+method+'.tcl'
-    
+
     return url
+
 
 def constructParams(method):
     querystring = {
@@ -179,6 +166,7 @@ def constructParams(method):
 
     return querystring
 
+
 def callAPI(method):
     headers = {
         'User-Agent': "PostmanRuntime/7.13.0",
@@ -186,21 +174,22 @@ def callAPI(method):
         'accept-encoding': "gzip, deflate",
         'Connection': "keep-alive"
     }
-    
+
     headers['Host'] = session['host']
     headers['cookie'] = session['cookie']
-    
+
     url = constructURL(method)
     querystring = constructParams(method)
 
     data = {}
-  
-    try:
-        response = requests_retry_session().request("GET", url, headers=headers, params=querystring, verify=False)
 
-        #print(url)
-        #print(headers)
-        #print(response.text)
+    try:
+        response = requests_retry_session().request(
+            "GET", url, headers=headers, params=querystring, verify=False)
+
+        # print(url)
+        # print(headers)
+        # print(response.text)
 
         if response.status_code == 200 and session['alive'] == True:
             data = filterData(method, hjson.loads(response.text))
@@ -212,35 +201,39 @@ def callAPI(method):
 
     return data
 
+
 def filterData(method, data):
     if method == 'blades-summary':
         data = bladeFilter(data)
 
     return data
 
+
 def bladeFilter(data):
     newdata = {}
     blades = {}
-    
+
     newdata['data'] = {}
 
     for blade in data['data']['blades']:
         tmpBlade = {}
         tmpChart = {}
-        
+
         tmpBlade['is_enabled'] = blade['is_enabled']
-        
-        for k,v in blade['fields'].iteritems():
+
+        for k, v in blade['fields'].iteritems():
             if k == 'Last update':
                 tmpBlade['update_status'] = v.split("Database version: ")[0]
-                tmpBlade['update_version'] = v.split("Database version: ")[1].split('.')[0]
-                tmpBlade['update_timestamp'] = v.split("Package date: ")[1].split(' .')[0]
+                tmpBlade['update_version'] = v.split(
+                    "Database version: ")[1].split('.')[0]
+                tmpBlade['update_timestamp'] = v.split(
+                    "Package date: ")[1].split(' .')[0]
 
             else:
                 tmpBlade[k.replace(" ", "_")] = v
 
         for chart in blade['charts']:
-            for k,v in chart.iteritems():
+            for k, v in chart.iteritems():
                 tmpChart[k.replace(" ", "_")] = v
 
             tmpBlade[chart['title'].replace(" ", "_")] = tmpChart
@@ -251,16 +244,17 @@ def bladeFilter(data):
 
     return newdata
 
+
 def getData(method):
     data = {}
 
     # Bundle all info together
     if method == 'All':
-        for k,v in methods.iteritems():
+        for k, v in methods.iteritems():
             json = callAPI(method=k)
             if 'data' in json:
                 data[k] = json['data']
-          
+
     else:
         json = callAPI(method=method)
         if 'data' in json:
@@ -268,44 +262,100 @@ def getData(method):
 
     return data
 
+
 def index2Elastic(es, index, data, method):
-    esindex = index + '-' + session['date'] 
+    esindex = index + '-' + session['date']
     response = es.index(index=esindex, doc_type=method, body=data)
 
     return response
 
-def main(host, username, password, method, es_host, es_port, es_username, es_password, es_index, ca_path):
+
+def index2logstash(host, port, protocol, version, data, method):
+    ls_logger = logging.getLogger('python-logstash-logger')
+    ls_logger.setLevel(logging.INFO)
+    
+    if (protocol == 'udp'):
+        ls_logger.addHandler(logstash.TCPLogstashHandler(host, port, version=version))
+    else:
+        ls_logger.addHandler(logstash.LogstashHandler(host, port, version=version))
+
+    ls_logger.info('gaia-monitor: ' + method + data):
+
+    response = es.index(index=esindex, doc_type=method, body=data)
+
+    return response
+
+
+def main():
     session['host'] = host
     data = {}
     response = {}
-    
-    es = setElasticSearch(es_host, es_port, es_username, es_password, ca_path)
+
+    host = module.params.get('host')
+    username = module.params.get('username')
+    password = module.params.get('password')
+    parameters = module.params.get('parameters')
+
+    if parameters:
+        parameters = parameters
+        parameters = parameters.replace("None", "null")
+        parameters = parameters.replace("'", '"')
+        # The following replace method must be the last replace option!!!
+        # This is intended for running run-script API command in CLISH mode, where the "'" character is required inside the script parameter.
+        # Example: "clish -c 'show core-dump status'"
+        # For such case, the YML must be in the following format: 'clish -c \"show core-dump status\"'
+        parameters = parameters.replace("\\\\\"", "'")
+        parameters = parameters.replace("True", "true")
+        parameters = parameters.replace("False", "false")
+        # Finally, parse to JSON
+        parameters = json.loads(parameters)
 
     login(username=username, password=password)
-    
+
+    response = {
+        'error': true
+        'message': 'Failed to log'
+    }
+
     if session['alive'] == True:
         data = getData(method)
         data['host'] = host
-        data['@timestamp'] = datetime.datetime.utcnow()
 
-        response = index2Elastic(es=es, index=es_index, data=data, method=method)
+        data_store = parameters.get('type', 'elastic')
+
+        if (data_store == 'elastic'):
+            es = setElasticSearch(
+                parameters.get('es_host',''), 
+                parameters.get('es_port' ,''),
+                parameters.get('es_username',''),
+                parameters.get('es_password',''),
+                parameters.get('ca_path',''))
+
+            data['@timestamp'] = datetime.datetime.utcnow()
+
+            response = index2Elastic(
+                es=es, 
+                index=es_index, 
+                data=data, 
+                method=method)
+
+        if (data_store == 'logstash'):
+            response = index2logstash(
+                host=parameters.get('ls_host,''),
+                port=parameters.get('ls_port,''),
+                protocol=parameters.get('ls_protocol,''),
+                version=parameters.get('ls_version,''),
+                data=data, 
+                method=method)
+
+
     else:
 
         response = session['message']
-    
+
     module.exit_json(changed=False, ansible_module_results=response)
+
 
 # Get the show on the road
 if __name__ == '__main__':
-    main(
-        host=module.params['host'], 
-        method=module.params['method'], 
-        username=module.params['username'], 
-        password=module.params['password'],
-        es_host=module.params['es_host'],
-        es_port=module.params['es_port'],
-        es_username=module.params['es_username'],
-        es_password=module.params['es_password'],
-        es_index=module.params['es_index'],
-        ca_path=module.params['ca_path']
-    )
+    main()
