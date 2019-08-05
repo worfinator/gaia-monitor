@@ -291,6 +291,7 @@ def main():
     host = module.params.get('host')
     username = module.params.get('username')
     password = module.params.get('password')
+    method = module.params.get('method','All')
     parameters = module.params.get('parameters')
 
     if parameters:
