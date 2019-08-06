@@ -4,9 +4,7 @@ import requests
 import json
 import hjson
 import urllib3
-import logging
-import logstash
-import sys
+import base64
 from elasticsearch import Elasticsearch
 from ssl import create_default_context
 from requests.adapters import HTTPAdapter
@@ -45,6 +43,31 @@ methods = {
 
 
 urllib3.disable_warnings()
+
+
+def setLogstash(host, port, username, password, version, ssl):
+    ls_object = {
+        'headers': {
+            'Host': host + ':' + port,
+            'Content-Type': "application/json",
+            'User-Agent': "Python/Logger",
+            'Accept': "*/*",
+            'Accept-Encoding': "gzip, deflate"
+        }
+    }
+
+    protocol = 'http'
+    if ssl:
+        protocol = 'https'
+
+    ls_object['url'] = protocol + '://' + host + ':' + port
+
+    if len(username) and len(password):
+        auth = username + ':' + password
+        auth = 'Basic ' + base64.b64encode(auth)
+        ls_object['headers']['Authorization'] = auth
+    
+    return ls_object
 
 
 def setElasticSearch(host, port, username, password, ca_path):
@@ -254,18 +277,31 @@ def index2Elastic(es, index, data, method):
     return response
 
 
-def index2logstash(host, port, protocol, version, data, method):
-    ls_logger = logging.getLogger('python-logstash-logger')
-    ls_logger.setLevel(logging.INFO)
-    
-    if (protocol == 'udp'):
-        ls_logger.addHandler(logstash.TCPLogstashHandler(host, port, version=version))
-    else:
-        ls_logger.addHandler(logstash.LogstashHandler(host, port, version=version))
+def index2logstash(ls, data, method):
+    output = {
+        "status": 500,
+        "message": "Unknown error while communicating to Logstash endpoint"
+    }
 
-    response = ls_logger.info('gaia-monitor: ' + method + data)
+    try:
+        response = requests_retry_session().request(
+                "PUT", ls['url'], data=json.dumps(data), headers=ls['headers'], verify=False)
+       
+        output['status'] = response.status_code
 
-    return response
+        if response.status_code == 200:
+           output['message'] = 'Data successfully submitted to Logstash endpoint'
+
+        if response.status_code == 401:
+           output['message'] = 'Authorisation to Logstash endpoint failed'
+      
+    except: 
+        output = {
+            "status": 404,
+            "message":"Error connecting to Logstash endpoint, check connection"
+        }
+
+    return output
 
 def cleanParams(parameters):
     parameters = parameters.replace("None", "null")
@@ -297,7 +333,7 @@ def main():
         if gaia.get('domain'):
             gaia['host'] = gaia['host'] + '.' + gaia.get('domain')
 
-        #print gaia['host']
+        # print gaia['host']
 
     if datastore:
         datastore = cleanParams(datastore)
@@ -334,14 +370,19 @@ def main():
                 method=gaia['method'])
 
         if (ds_type == 'logstash'):
+            ls = setLogstash(
+                datastore.get('host',''), 
+                datastore.get('port' ,''),
+                datastore.get('username',''),
+                datastore.get('password',''),
+                datastore.get('version',1),
+                datastore.get('ssl',False)
+            )
+
             response = index2logstash(
-                host=datastore.get('host',''),
-                port=datastore.get('port',''),
-                protocol=datastore.get('protocol',''),
-                version=datastore.get('version',''),
+                ls=ls,
                 data=data, 
                 method=gaia['method'])
-
 
     else:
 
