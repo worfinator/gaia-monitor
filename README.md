@@ -70,11 +70,11 @@ Presuming that you are using this role within Ansible Tower with an inventory gr
   CheckPoints:
     - CP-01
     - CP-02
-  domain: .mydomain.com #option domain to add to host if required to resolve host
 
   gaia:
     username: myuser
     password: mypassword
+    domain: mydomain.com #option domain to add to host if required to resolve host
     method: All
 
   data_store:
@@ -99,9 +99,7 @@ Presuming that you are using this role within Ansible Tower with an inventory gr
     - include_role: name=gaia-monitor
       with_items: "{{ CheckPoints }}"
       loop_control:
-        loop_var: checkpoint
-      vars:
-        gaia: "{{ gaia | combine( {'host': checkpoint domain } ) }}"
+        loop_var: gaia_host
 ```
 
 ## License
