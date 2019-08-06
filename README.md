@@ -89,17 +89,19 @@ Presuming that you are using this role within Ansible Tower with an inventory gr
   tasks:
     - name: Set hosts
       set_fact:
-      CheckPoints: "{{ groups['CHECKPOINT-Firewalls'] }}"
+        CheckPoints: "{{ groups['CHECKPOINT-Firewalls'] }}"
       when: groups['CHECKPOINT-Firewalls'] is defined
 
     - name: CheckPoints we will be querying
       debug:
-      var: CheckPoints
+        var: CheckPoints
 
     - include_role: name=gaia-monitor
       with_items: "{{ CheckPoints }}"
       loop_control:
-      loop_var: checkpoint
+        loop_var: checkpoint
+      vars:
+        gaia: "{{ gaia | combine( {'host': checkpoint domain } ) }}"
 ```
 
 ## License
