@@ -293,6 +293,9 @@ def main():
     if gaia:
         gaia = cleanParams(gaia)
 
+        if gaia.get('host') and gaia.get('domain'):
+            gaia['host'] = gaia.get('host') + '.' + gaia.get('domain')
+
     if datastore:
         datastore = cleanParams(datastore)
 
