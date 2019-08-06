@@ -1,8 +1,8 @@
 ---
 - name: Add host from loop
   set_fact:
-    gaia: "{{ gaia | combine( {'host': gaia_host ~ '.' ~ gaia.domain} ) }}"
-  when: gaia_host is defined and gaia.domain is defined
+    gaia: "{{ gaia | combine( {'host': gaia_host} ) }}"
+  when: gaia_host is defined
 
 - name: Get Monitoring Info
   gaia2elastic:
