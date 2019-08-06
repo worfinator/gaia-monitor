@@ -2,13 +2,8 @@
 - name: Get Monitoring Info
   gaia2elastic:
     #CheckPoint Device
-    host: "{{ checkpoint }}{{ domain }}"
-    # Method/Endpoint data to retrieve (All, hostname, overview,backup, operation, monitor, blades-summary)
-    method: "{{ gaia.method }}"
-    #Gaia Web credentials
-    username: "{{ gaia.username }}"
-    password: "{{ gaia.password }}"
-    parameters: "{{ data_store }}"
+    gaia: "{{ gaia }}"
+    datastore: "{{ data_store }}"
   register: modout
   ignore_errors: True
   no_log: False

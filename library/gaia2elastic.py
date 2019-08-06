@@ -15,24 +15,8 @@ from ansible.module_utils.basic import AnsibleModule
 
 # arguments for the module:
 fields = {
-    "host": {
-        "required": True,
-        "type": "str"
-    },
-    "username": {
-        "required": True,
-        "type": "str"
-    },
-    "password": {
-        "required": False,
-        "type": "str",
-        "no_log": True
-    },
-    "method": {
-        "type": "str",
-        "default": "All"
-    },
-    "parameters": {}
+    "gaia": {},
+    "datastore": {}
 }
 
 module = AnsibleModule(argument_spec=fields, supports_check_mode=True)
@@ -63,14 +47,14 @@ methods = {
 urllib3.disable_warnings()
 
 
-def setElasticSearch(es_host, es_port, es_username, es_password, ca_path):
+def setElasticSearch(host, port, username, password, ca_path):
     context = create_default_context(cafile=ca_path)
 
     es_object = Elasticsearch(
-        [es_host],
-        http_auth=(es_username, es_password),
+        [host],
+        http_auth=(username, password),
         scheme="https",
-        port=es_port,
+        port=port,
         ssl_context=context,
     )
 
@@ -283,34 +267,38 @@ def index2logstash(host, port, protocol, version, data, method):
 
     return response
 
+def cleanParams(parameters):
+    parameters = parameters
+    parameters = parameters.replace("None", "null")
+    parameters = parameters.replace("'", '"')
+    # The following replace method must be the last replace option!!!
+    # This is intended for running run-script API command in CLISH mode, where the "'" character is required inside the script parameter.
+    # Example: "clish -c 'show core-dump status'"
+    # For such case, the YML must be in the following format: 'clish -c \"show core-dump status\"'
+    parameters = parameters.replace("\\\\\"", "'")
+    parameters = parameters.replace("True", "true")
+    parameters = parameters.replace("False", "false")
+    # Finally, parse to JSON
+    parameters = json.loads(parameters)
+
+    return parameters
 
 def main():
     data = {}
     response = {}
 
-    host = module.params.get('host')
-    username = module.params.get('username')
-    password = module.params.get('password')
-    method = module.params.get('method','All')
-    parameters = module.params.get('parameters')
+    gaia = module.params.get('gaia')
+    datastore = module.params.get('datastore')
 
-    if parameters:
-        parameters = parameters
-        parameters = parameters.replace("None", "null")
-        parameters = parameters.replace("'", '"')
-        # The following replace method must be the last replace option!!!
-        # This is intended for running run-script API command in CLISH mode, where the "'" character is required inside the script parameter.
-        # Example: "clish -c 'show core-dump status'"
-        # For such case, the YML must be in the following format: 'clish -c \"show core-dump status\"'
-        parameters = parameters.replace("\\\\\"", "'")
-        parameters = parameters.replace("True", "true")
-        parameters = parameters.replace("False", "false")
-        # Finally, parse to JSON
-        parameters = json.loads(parameters)
+    if gaia:
+        gaia = cleanParams(gaia)
 
-    session['host'] = host
+    if datastore:
+        datastore = cleanParams(datastore)
 
-    login(username=username, password=password)
+    session['host'] = gaia['host']
+
+    login(username=gaia['username'], password=gaia['password'])
 
     response = {
         'error': True,
@@ -318,33 +306,33 @@ def main():
     }
 
     if session['alive'] == True:
-        data = getData(method)
-        data['host'] = host
+        data = getData(gaia['method'])
+        data['host'] = gaia['host']
 
-        data_store = parameters.get('type', 'elastic')
+        ds_type = datastore.get('type', 'elastic')
 
-        if (data_store == 'elastic'):
+        if (ds_type == 'elastic'):
             es = setElasticSearch(
-                parameters.get('host',''), 
-                parameters.get('port' ,''),
-                parameters.get('username',''),
-                parameters.get('password',''),
-                parameters.get('ca_path',''))
+                datastore.get('host',''), 
+                datastore.get('port' ,''),
+                datastore.get('username',''),
+                datastore.get('password',''),
+                datastore.get('ca_path',''))
 
             data['@timestamp'] = datetime.datetime.utcnow()
 
             response = index2Elastic(
                 es=es, 
-                index=parameters.get('index','Default-'), 
+                index=datastore.get('index','Default-'), 
                 data=data, 
                 method=method)
 
-        if (data_store == 'logstash'):
+        if (ds_type == 'logstash'):
             response = index2logstash(
-                host=parameters.get('host',''),
-                port=parameters.get('port',''),
-                protocol=parameters.get('protocol',''),
-                version=parameters.get('version',''),
+                host=datastore.get('host',''),
+                port=datastore.get('port',''),
+                protocol=datastore.get('protocol',''),
+                version=datastore.get('version',''),
                 data=data, 
                 method=method)
 
