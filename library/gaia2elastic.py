@@ -292,9 +292,11 @@ def main():
 
     if gaia:
         gaia = cleanParams(gaia)
+        gaia['host'] = gaia.get('host')
+        gaia['method'] = gaia.get('method', 'All')
 
-        if gaia.get('host') and gaia.get('domain'):
-            gaia['host'] = gaia.get('host') + '.' + gaia.get('domain')
+        if gaia.get('domain'):
+            gaia['host'] = gaia['host'] + '.' + gaia.get('domain')
 
     if datastore:
         datastore = cleanParams(datastore)
@@ -328,7 +330,7 @@ def main():
                 es=es, 
                 index=datastore.get('index','Default-'), 
                 data=data, 
-                method=method)
+                method=gaia['method'])
 
         if (ds_type == 'logstash'):
             response = index2logstash(
@@ -337,7 +339,7 @@ def main():
                 protocol=datastore.get('protocol',''),
                 version=datastore.get('version',''),
                 data=data, 
-                method=method)
+                method=gaia['method'])
 
 
     else:
