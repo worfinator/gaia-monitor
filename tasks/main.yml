@@ -1,14 +1,14 @@
 ---
 - name: Add host from loop
   set_fact:
-    gaia: "{{ gaia | combine( {'host': gaia_host} ) }}"
-  when: gaia_host is defined
+    gaia: "{{ gaia | combine( {'host': gaia_host ~ '.' ~ gaia.domain} ) }}"
+  when: gaia_host is defined and gaia.domain is defined
 
 - name: Get Monitoring Info
   gaia2elastic:
     #CheckPoint Device
     gaia: "{{ gaia }}"
-    datastore: "{{ data_store }}"
+    datastore: "{{ datastore }}"
   register: modout
   ignore_errors: True
   no_log: False

@@ -54,7 +54,7 @@ def setElasticSearch(host, port, username, password, ca_path):
         [host],
         http_auth=(username, password),
         scheme="https",
-        port=port,
+        port=int(port),
         ssl_context=context,
     )
 
@@ -268,7 +268,6 @@ def index2logstash(host, port, protocol, version, data, method):
     return response
 
 def cleanParams(parameters):
-    parameters = parameters
     parameters = parameters.replace("None", "null")
     parameters = parameters.replace("'", '"')
     # The following replace method must be the last replace option!!!
@@ -297,6 +296,8 @@ def main():
 
         if gaia.get('domain'):
             gaia['host'] = gaia['host'] + '.' + gaia.get('domain')
+
+        #print gaia['host']
 
     if datastore:
         datastore = cleanParams(datastore)
