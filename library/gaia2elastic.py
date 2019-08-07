@@ -57,7 +57,7 @@ def setLogstash(host, port, username, password, version, ssl):
     }
 
     protocol = 'http'
-    if ssl:
+    if ssl and ssl == 'True':
         protocol = 'https'
 
     ls_object['url'] = protocol + '://' + host + ':' + port
