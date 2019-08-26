@@ -351,7 +351,7 @@ def main():
         data = getData(gaia['method'])
         data['host'] = gaia['host']
 
-        ds_type = datastore.get('type', 'elastic')
+        ds_type = datastore.get('type', '')
 
         if (ds_type == 'elastic'):
             es = setElasticSearch(
