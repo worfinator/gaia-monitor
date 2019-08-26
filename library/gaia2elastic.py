@@ -384,6 +384,10 @@ def main():
                 data=data, 
                 method=gaia['method'])
 
+        if (ds_type == ''):
+
+            response = data
+
     else:
 
         response = session['message']
