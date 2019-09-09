@@ -277,7 +277,7 @@ def index2Elastic(es, index, data, method):
     return response
 
 
-def index2logstash(ls, data, method):
+def index2logstash(ls, index, data, method):
     output = {
         "status": 500,
         "message": "Unknown error while communicating to Logstash endpoint"
@@ -381,6 +381,7 @@ def main():
 
             response = index2logstash(
                 ls=ls,
+                index=datastore.get('index','Default-'),
                 data=data, 
                 method=gaia['method'])
 
