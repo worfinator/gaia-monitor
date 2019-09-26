@@ -57,7 +57,7 @@ def setLogstash(host, port, username, password, version, ssl):
     }
 
     protocol = 'http'
-    if ssl and ssl == 'True':
+    if ssl == True:
         protocol = 'https'
 
     ls_object['url'] = protocol + '://' + host + ':' + port
@@ -283,19 +283,22 @@ def index2logstash(ls, index, data, method):
         "message": "Unknown error while communicating to Logstash endpoint"
     }
 
+
     try:
+    
         response = requests_retry_session().request(
                 "PUT", ls['url'], data=json.dumps(data), headers=ls['headers'], verify=False)
-       
+
         output['status'] = response.status_code
 
         if response.status_code == 200:
-           output['message'] = 'Data successfully submitted to Logstash endpoint'
+            output['message'] = 'Data successfully submitted to Logstash endpoint'
 
         if response.status_code == 401:
-           output['message'] = 'Authorisation to Logstash endpoint failed'
-      
+            output['message'] = 'Authorisation to Logstash endpoint failed'
+        
     except: 
+        
         output = {
             "status": 404,
             "message":"Error connecting to Logstash endpoint, check connection"
