@@ -15,7 +15,7 @@
   async: 600
   poll: 0
 
-  - name: Debug Info
+- name: Debug Info
   debug:
     var: modout
   when: display_debug is defined and display_debug
