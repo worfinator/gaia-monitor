@@ -12,9 +12,9 @@
   register: modout
   ignore_errors: True
   no_log: False
-  async: 600
-  poll: 0
 
+  #async: 600
+  #poll: 0
 - name: Debug Info
   debug:
     var: modout
